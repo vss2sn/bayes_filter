@@ -151,8 +151,8 @@ int main() {
     }
 
     // Predict and update
-    ukf.PredictSTL((Eigen::VectorXd(1) << believed_acc[i]).finished());
-    ukf.UpdateSTL((Eigen::VectorXd(1) << measured_pos[i][0]).finished());
+    ukf.Predict((Eigen::VectorXd(1) << believed_acc[i]).finished());
+    ukf.Update((Eigen::VectorXd(1) << measured_pos[i][0]).finished());
 
     // Get the estimated state
     estimated_pos[i] = ukf.GetState()[0];

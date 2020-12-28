@@ -1,8 +1,18 @@
-// This file simualtes a simple rigid pendulum with all 3 filters for comparison
+// This file simualtes a simple rigid pendulum
+// the state q is the [angle, elocity] ie [theta, theta_dot]
+// u is the external acceleration provided by an external accuator in the upward direction
+// ie moving the entire pendulum at an acceleration u vertically upward
+// The sensor used for measurement provides the measured x and y coordinate
+// Which is why the output function is just converts the state q into the x and y coordinates
+// estimated_ang is the angle estimated by the unscented kalman filter
+// measured_xy is the x and y position measued by the sensor
+// true_ang is the true angle of the pendulum
+// believed_acc is teh acceleration we believe that the actuator provides to the system (u)
 
 #include <array>
 #include <fstream>
 #include <random>
+#include <iostream>
 
 #include <Eigen/Dense>
 
@@ -24,33 +34,25 @@ constexpr int M = static_cast<int>(measurement_dt / system_dt);
 
 // Process noise and measurement noise generators
 constexpr double measurement_mu = 0.0;
-constexpr double measurement_sigma = 0.1;
+constexpr double measurement_sigma = 0.5;
 
 constexpr double process_mu = 0.0;
-constexpr double process_sigma = 0.1;
+constexpr double process_sigma = 0.5;
 
 // System variables and dimenstions
 constexpr int n = 2;  // Number of state variables
 constexpr int m = 2;  // Number of measurement variables
-constexpr int c = 1;  // Number of control variables
 
-constexpr double initial_position = 3;
+constexpr double initial_position = 1.0;
 constexpr double initial_velocity = 0.0;
 constexpr double initial_acceleration = 0.0;
-constexpr double system_center = 0.0;
-//To use system centre another matrix would need to be passded into the
-// kalman filter for constants
-
-// Design parameters
-constexpr double alpha(0.05);
-constexpr double beta(2.0);
-constexpr double kappa(0.0);
+constexpr double system_center = 2.0;
 
 // Process constants
 constexpr double mass = 1.0;   // Mass in kg
 constexpr double g = 9.8;   // Gravitational accel.
 constexpr double d = 1.0;   // Length in m
-constexpr double b = 0.1;   // Friction coef. in 1/s
+constexpr double b = 0.5;   // Friction coef. in 1/s
 
 // Simulate system dynamics
 auto processFunction = [] (const Eigen::VectorXd& q, const Eigen::VectorXd& u) {
@@ -66,27 +68,16 @@ auto outputFunction = [] (const Eigen::VectorXd& q) {
   return (Eigen::VectorXd(2) << d * sin(q(0)), d * cos(q(0))).finished();
 };
 
-auto processJacobian = [] (const Eigen::VectorXd& q, const Eigen::VectorXd& u) {
-  return (Eigen::MatrixXd(2, 2) <<
-            1, system_dt,
-            (u(0) - g) * cos(q(0)) * system_dt / d, 1.0 - b * system_dt / (m *d *d)
-         ).finished();
-};
-
-auto outputJacobian = [](const Eigen::VectorXd& q) {
-    return  (Eigen::MatrixXd(2, 2) <<
-              d * cos(q(0)), 0.0,
-             -d * sin(q(0)), 0.0).finished();
-};
-
 // Input u given to system, can be modified to be a feedback controller
 auto controlInputFunction = [] () {
   return 1.0;
 };
 
-Eigen::MatrixXd A(n, n);  // State Transition model matrix
-Eigen::MatrixXd B(n, c);  // Input control matrix
-Eigen::MatrixXd C(m, n);  // Observation model matrix
+// Design parameters
+constexpr double alpha(0.05);
+constexpr double beta(2.0);
+constexpr double kappa(0.0);
+
 Eigen::MatrixXd P(n, n);  // Estimate error covariance
 Eigen::MatrixXd Q(n, n);  // Process noise covariance
 Eigen::MatrixXd R(m, m);  // Measurement noise covariance
@@ -97,11 +88,6 @@ int main() {
   std::default_random_engine generator;
   std::normal_distribution<double> measurement_noise(measurement_mu, measurement_sigma);
   std::normal_distribution<double> process_noise(process_mu, process_sigma);
-
-  A << 1, system_dt,
-       mass * - g * d * system_dt, (1 - (b / mass) * system_dt);
-  B << 0, mass * d *  system_dt;
-  C << d, 0, 0, 0;
 
   P.setZero(n, n);
   Q << 0.001, 0.0, 0.0, 0.001;
@@ -114,14 +100,12 @@ int main() {
   std::array<double, N> true_vel;
   std::array<double, N> true_acc;
 
-  std::array<Eigen::VectorXd, N> measured_pos;
+  std::array<Eigen::VectorXd, N> measured_xy;
   std::array<double, N> measured_ang;
   std::array<double, N> estimated_ang;
   std::array<double, N> believed_acc;
 
   // Initialize UKF
-  Kalman kf(A, B, C, P, Q, R);
-  ExtendedKalman ekf(P, Q, R, processFunction, outputFunction, processJacobian, outputJacobian);
   UnscentedKalman ukf(P, Q, R, processFunction, outputFunction, alpha, beta, kappa);
 
   time[0] = 0.0;
@@ -130,9 +114,8 @@ int main() {
   true_vel[0] = initial_velocity;
   true_acc[0] = initial_acceleration;
 
-  // These are unknown to the filter
-  measured_pos[0].setZero(2);
-  measured_pos[0][0] = 0.0;
+  measured_xy[0].setZero(2);
+  measured_ang[0] = 0.0;
   estimated_ang[0] = 0.0;
   believed_acc[0] = 0.0;
 
@@ -141,18 +124,16 @@ int main() {
     file.open("position.csv");
   }
 
-  const auto initial_state = (Eigen::VectorXd(2) << 0, 0).finished();
-
-  kf.SetInitialState(initial_state);
-  ekf.SetInitialState(initial_state);
-  ukf.SetInitialState(initial_state);
+  // NOTE: Initial state set to zero to test/demonstrate, set to actual value as required
+  ukf.SetInitialState((Eigen::VectorXd(2) << 0.0, 0.0).finished());
+  // ukf.SetInitialState((Eigen::VectorXd(2) << initial_position, initial_velocity).finished());
 
   // Simulation
   for (int i = 1; i < N; ++i) {
     time[i] = i * system_dt;
 
     // The ideal input u at time step i
-    believed_acc[i] = controlInputFunction();
+    believed_acc[i] = sin(time[i] * 2.0 * M_PI / simulation_time);
 
     // The actual input u at time step i given actuator noise
     true_acc[i] = believed_acc[i] + process_noise(generator);
@@ -168,34 +149,26 @@ int main() {
 
     // A new measumerment is obtained at very Mth time step
     if(i % M == 0) {
-      measured_pos[i] = outputFunction((Eigen::VectorXd(1) << true_ang[i]).finished());
-      measured_pos[i](0) += measurement_noise(generator);
-      measured_pos[i](1) += measurement_noise(generator);
-      measured_ang[i] = atan2(measured_pos[i](0), measured_pos[i](1));
+      measured_xy[i] = outputFunction((Eigen::VectorXd(2) << true_ang[i], true_vel[i]).finished());
+      measured_xy[i](0) += measurement_noise(generator);
+      measured_xy[i](1) += measurement_noise(generator);
+      measured_ang[i] = atan2(measured_xy[i](0), measured_xy[i](1));
     } else {
-      measured_pos[i] = measured_pos[i-1];
-      measured_ang[i] = measured_ang[i-1];
+      measured_xy[i] = measured_xy[i - 1];
+      measured_ang[i] = measured_ang[i - 1];
     }
 
     // Predict and update
-    const auto u = (Eigen::VectorXd(1) << believed_acc[i]).finished();
-
-    kf.Predict(u);
-    kf.Update(measured_pos[i]);
-
-    ekf.Predict(u);
-    ekf.Update(measured_pos[i]);
-
-    ukf.Predict(u);
-    ukf.Update(measured_pos[i]);
+    ukf.Predict((Eigen::VectorXd(1) << believed_acc[i]).finished());
+    ukf.Update(measured_xy[i]);
 
     // Get the estimated state
-    estimated_ang[i] = kf.GetState()[0];
+    estimated_ang[i] = ukf.GetState()[0];
+
     if constexpr (logging) {
-      file << kf.GetState()[0] << ',' << ekf.GetState()[0] << ',' <<
-              ukf.GetState()[0] << ','  << measured_ang[i] << ',' <<
-              true_ang[i] << '\n';
+      file << estimated_ang[i] << ',' << measured_ang[i] << ',' << true_ang[i] << '\n';
     }
+
   }
 
   if constexpr (logging) {

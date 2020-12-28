@@ -49,6 +49,11 @@ function(custom_add_executable SOURCE_FILE)
 endfunction()
 
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/main/main.cpp)
-custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_kalman.cpp)
+
+custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_pendulum/sp_extended_kalman.cpp)
+custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_pendulum/sp_kalman.cpp)
+custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_pendulum/sp_unscented_kalman.cpp)
+
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_extended_kalman.cpp)
+custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_kalman.cpp)
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_unscented_kalman.cpp)

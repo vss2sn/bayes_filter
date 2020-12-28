@@ -1,37 +1,35 @@
 # Kalman Filter #
 
-### This repository contains implementation of various types of Kalman filters. ###
+### This repository contains implementations of various types of Kalman filters. ###
 
 It contains implementations for
 1. Kalman Filter
 2. Extended Kalman Filter
 3. Unscented Kalman Filter
 
-It also includes examples for each of the above for a
-1. spring mass damper system
+It also includes the following examples:
+1. Spring mass damper system (kf, efk, ukf)
+2. Simple pendulum (kf, ekf, ukf)
+
+The kalman filter example in the non-linear simple pendulum example has been added to demonstrate the performance of the kalman filter when the measurement to state space conversion, the process matrix and the control matrix are non-linear and approximations/assumptions are made to help it replicate the actual process (in this case, the small angle approximation)
 
 #### To build and run ####
      git clone https://github.com/vss2sn/kalman_filter.git  
      cd path_planning  
      mkdir build  
      cd build  
-     cmake .. && make -j4  
-     ./main  
+     cmake .. && make -j2  
+     ./main # or the examples' executables
 
-#### To use and older compiler ####
-
-To remove the requirement for C++20 and use an older compiler:
-1. Comment the following lines from the CMAkeLists.txt:
-  * `set(CMAKE_C_COMPILER gcc-10)`
-  * `set(CMAKE_CXX_COMPILER g++-10)`
-2. Change the `CXX_STANDARD 20` option in the CMakeLists.txt (`set_target_properties`) to `CXX_STANDARD 17`
-3. Comment out the `PredictSTL` and `UpdateSTL` functions in `unscented_kalman.hpp` and `unscented_kalman.cpp`
-4. Comment out the `#include <ranges>` in `unscented_kalman.cpp`
+#### To run without C++20 ####
+Please checkout the branch `c++17` and use that/rebase on it
 
 #### TODO ####
-1. Add example for pendulum
-2. Add documentation
-3. Add references
-4. Add explanatory notes for each step of the filter
-5. Consider setting the initial state for the filters
-6. Option for dimension correctness checking (esp. for control input)
+1. Add documentation
+2. Add references
+3. Consider setting the initial state for the filters
+4. Option for dimension correctness checking (esp. for control input)
+
+#### References ####
+1. https://github.com/tysik/kalman_filters/
+2. https://github.com/PrieureDeSion/kalmanfilter-cpp/
