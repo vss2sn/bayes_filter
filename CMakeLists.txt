@@ -1,7 +1,3 @@
-# Using non-default compiler; ideally avoid setting this
-set(CMAKE_C_COMPILER gcc-10)
-set(CMAKE_CXX_COMPILER g++-10)
-
 project(bayes_filter)
 
 cmake_minimum_required(VERSION 3.5)
@@ -29,7 +25,7 @@ target_link_libraries(bayes_filter
 
 set_target_properties(bayes_filter
   PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
     CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra")
@@ -40,7 +36,7 @@ function(custom_add_executable SOURCE_FILE)
   add_executable(${executable_file} ${SOURCE_FILE})
   set_target_properties(${executable_file}
     PROPERTIES
-      CXX_STANDARD 20
+      CXX_STANDARD 17
       CXX_STANDARD_REQUIRED YES
       CXX_EXTENSIONS NO
       CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Werror")

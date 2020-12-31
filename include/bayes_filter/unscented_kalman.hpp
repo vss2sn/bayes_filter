@@ -25,9 +25,6 @@ public:
   void Predict(const Eigen::VectorXd& u) override;
   void Update(const Eigen::VectorXd& y) override;
 
-  void PredictSTL(const Eigen::VectorXd& u);
-  void UpdateSTL(const Eigen::VectorXd& y);
-
   Eigen::VectorXd GetState() const override { return x_est_; };
 
 private:
