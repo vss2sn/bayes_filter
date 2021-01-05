@@ -1,6 +1,6 @@
-# Kalman Filter #
+# Bayes Filter #
 
-### This repository contains implementations of various types of Kalman filters. ###
+### This repository contains implementations of various types of Bayes filters. ###
 
 It contains implementations for
 1. Kalman Filter
@@ -14,11 +14,11 @@ It also includes the following examples:
 The kalman filter example in the non-linear simple pendulum example has been added to demonstrate the performance of the kalman filter when the measurement to state space conversion, the process matrix and the control matrix are non-linear and approximations/assumptions are made to help it replicate the actual process (in this case, the small angle approximation)
 
 #### To build and run ####
-     git clone https://github.com/vss2sn/kalman_filter.git  
-     cd path_planning  
+     git clone https://github.com/vss2sn/bayes_filter.git  
+     cd bayes_filter  
      mkdir build  
      cd build  
-     cmake .. && make -j2  
+     cmake .. && make -j  
      ./main # or the examples' executables
 
 #### To run without C++20 ####
@@ -26,9 +26,8 @@ Please checkout the branch `c++17` and use that/rebase on it
 
 #### TODO ####
 1. Add documentation
-2. Add references
-3. Consider setting the initial state for the filters
-4. Option for dimension correctness checking (esp. for control input)
+2. Consider setting the initial state for the filters
+3. Option for dimension correctness checking (esp. for control input)
 
 #### References ####
 1. https://github.com/tysik/kalman_filters/

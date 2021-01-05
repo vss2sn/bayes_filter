@@ -2,7 +2,7 @@
 set(CMAKE_C_COMPILER gcc-10)
 set(CMAKE_CXX_COMPILER g++-10)
 
-project(kalman_filter)
+project(bayes_filter)
 
 cmake_minimum_required(VERSION 3.5)
 
