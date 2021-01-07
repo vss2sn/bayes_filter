@@ -9,6 +9,7 @@ public:
   virtual void Predict(const Eigen::VectorXd& u) = 0;
   virtual void Update(const Eigen::VectorXd& y) = 0;
   virtual Eigen::VectorXd GetState() const = 0 ;
+  virtual ~BayesFilter() {};
 };
 
 #endif  // BAYES_FILTER_HPP

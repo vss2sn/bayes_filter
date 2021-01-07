@@ -15,6 +15,7 @@ target_sources(bayes_filter
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/kalman.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/extended_kalman.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/unscented_kalman.cpp)
 
 target_include_directories(bayes_filter
@@ -52,8 +53,10 @@ custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/main/main.cpp)
 
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_pendulum/sp_extended_kalman.cpp)
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_pendulum/sp_kalman.cpp)
+custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_pendulum/sp_particle.cpp)
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/simple_pendulum/sp_unscented_kalman.cpp)
 
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_extended_kalman.cpp)
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_kalman.cpp)
+custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_particle.cpp)
 custom_add_executable(${CMAKE_CURRENT_SOURCE_DIR}/examples/spring_mass_damper/smd_unscented_kalman.cpp)

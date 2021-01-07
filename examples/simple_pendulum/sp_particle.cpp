@@ -1,4 +1,14 @@
-// This file simualtes a simple rigid pendulum with all 3 filters for comparison
+// This file simualtes a simple rigid pendulum
+// the state q is the [angle, elocity] ie [theta, theta_dot]
+// u is the external acceleration provided by an external accuator in the upward direction
+// ie moving the entire pendulum at an acceleration u vertically upward
+// The sensor used for measurement provides the measured x and y coordinate
+// Which is why the output function is just converts the state q into the x and y coordinates
+// estimated_ang is the angle estimated by the unscented kalman filter
+// measured_xy is the x and y position measued by the sensor
+// true_ang is the true angle of the pendulum
+// believed_acc is teh acceleration we believe that the actuator provides to the system (u)
+
 #include <iostream>
 #include <array>
 #include <fstream>
@@ -33,19 +43,11 @@ constexpr double process_sigma = 0.1;
 // System variables and dimenstions
 constexpr int n = 2;  // Number of state variables
 constexpr int m = 2;  // Number of measurement variables
-constexpr int c = 1;  // Number of control variables
 
 constexpr double initial_position = 3.0;
 constexpr double initial_velocity = 0.0;
 constexpr double initial_acceleration = 0.0;
 constexpr double system_center = 0.0;
-//To use system centre another matrix would need to be passded into the
-// kalman filter for constants
-
-// Design parameters
-constexpr double alpha(0.05);
-constexpr double beta(2.0);
-constexpr double kappa(0.0);
 
 // Process constants
 constexpr double mass = 1.0;   // Mass in kg
@@ -67,30 +69,16 @@ auto outputFunction = [] (const Eigen::VectorXd& q) {
   return (Eigen::VectorXd(2) << d * sin(q(0)), d * cos(q(0))).finished();
 };
 
-auto processJacobian = [] (const Eigen::VectorXd& q, const Eigen::VectorXd& u) {
-  return (Eigen::MatrixXd(2, 2) <<
-            1, system_dt,
-            (u(0) - g) * cos(q(0)) * system_dt / d, 1.0 - b * system_dt / (m *d *d)
-         ).finished();
-};
-
-auto outputJacobian = [](const Eigen::VectorXd& q) {
-    return  (Eigen::MatrixXd(2, 2) <<
-              d * cos(q(0)), 0.0,
-             -d * sin(q(0)), 0.0).finished();
-};
-
 // Input u given to system, can be modified to be a feedback controller
 auto controlInputFunction = [] () {
   return 1.0;
 };
 
-Eigen::MatrixXd A(n, n);  // State Transition model matrix
-Eigen::MatrixXd B(n, c);  // Input control matrix
-Eigen::MatrixXd C(m, n);  // Observation model matrix
 Eigen::MatrixXd P(n, n);  // Estimate error covariance
 Eigen::MatrixXd Q(n, n);  // Process noise covariance
 Eigen::MatrixXd R(m, m);  // Measurement noise covariance
+
+constexpr int n_particles = 1000;
 
 int main() {
 
@@ -99,14 +87,8 @@ int main() {
   std::normal_distribution<double> measurement_noise(measurement_mu, measurement_sigma);
   std::normal_distribution<double> process_noise(process_mu, process_sigma);
 
-  A << 1, system_dt,
-       mass * - g * d * system_dt, (1 - (b / mass) * system_dt);
-  B << 0, mass * d *  system_dt;
-  C << d, 0, 0, 0;
-
   P.setZero(n, n);
   Q << 0.001, 0.0, 0.0, 0.001;
-  // //std::cout   Q << '\n';
   R << 1.0, 0.0, 0.0, 1.0;
 
   // Variables to store for comparison/record
@@ -125,10 +107,7 @@ int main() {
   Eigen::VectorXd max_states((Eigen::VectorXd(2) << 3, 10).finished());
 
   // Initialize UKF
-  Kalman kf(A, B, C, P, Q, R);
-  ExtendedKalman ekf(P, Q, R, processFunction, outputFunction, processJacobian, outputJacobian);
-  UnscentedKalman ukf(P, Q, R, processFunction, outputFunction, alpha, beta, kappa);
-  Particle pf(P, Q, R, processFunction, outputFunction, min_states, max_states, 1000);
+  Particle pf(P, Q, R, processFunction, outputFunction, min_states, max_states, n_particles);
 
   time[0] = 0.0;
 
@@ -149,13 +128,8 @@ int main() {
 
   const auto initial_state = (Eigen::VectorXd(2) << 0, 0).finished();
 
-  kf.SetInitialState(initial_state);
-  ekf.SetInitialState(initial_state);
-  ukf.SetInitialState(initial_state);
-
   // Simulation
   for (int i = 1; i < N; ++i) {
-    std::cout << "Simulation step: " << i << '\n';
     time[i] = i * system_dt;
 
     // The ideal input u at time step i
@@ -187,25 +161,13 @@ int main() {
     // Predict and update
     const auto u = (Eigen::VectorXd(1) << believed_acc[i]).finished();
 
-    kf.Predict(u);
-    kf.Update(measured_pos[i]);
-
-    ekf.Predict(u);
-    ekf.Update(measured_pos[i]);
-
-    ukf.Predict(u);
-    ukf.Update(measured_pos[i]);
-
     pf.Predict(u);
     pf.Update(measured_pos[i]);
 
     // Get the estimated state
-    estimated_ang[i] = kf.GetState()[0];
+    estimated_ang[i] = pf.GetState()[0];
     if constexpr (logging) {
-      file << kf.GetState()[0] << ',' <<
-              ekf.GetState()[0] << ',' <<
-              ukf.GetState()[0] << ','  <<
-              pf.GetState()[0] << ','  <<
+      file << estimated_ang[i] << ','  <<
               measured_ang[i] << ',' <<
               true_ang[i] << '\n';
     }
