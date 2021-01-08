@@ -1,4 +1,5 @@
-// This file simualtes a simple rigid pendulum with all 3 filters for comparison
+// This file simulates a simple rigid pendulum with all 3 filters for comparison
+
 #include <iostream>
 #include <array>
 #include <fstream>

@@ -21,14 +21,12 @@ public:
   );
 
   void SetInitialState(const Eigen::VectorXd& x0) override;
-
   void Predict(const Eigen::VectorXd& u) override;
   void Update(const Eigen::VectorXd& y) override;
+  Eigen::VectorXd GetState() const override { return x_est_; };
 
   void PredictSTL(const Eigen::VectorXd& u);
   void UpdateSTL(const Eigen::VectorXd& y);
-
-  Eigen::VectorXd GetState() const override { return x_est_; };
 
 private:
 

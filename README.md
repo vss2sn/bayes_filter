@@ -12,10 +12,11 @@ It also includes the following examples:
 1. Spring mass damper system (kf, efk, ukf, pf)
 2. Simple pendulum (kf, ekf, ukf, pf)
 
-The kalman filter example in the non-linear simple pendulum example has been added to demonstrate the performance of the kalman filter when the measurement to state space conversion, the process matrix and the control matrix are non-linear and approximations/assumptions are made to help it replicate the actual process (in this case, the small angle approximation)
+NOTE: The kalman filter example in the non-linear simple pendulum example has been added to demonstrate the performance of the kalman filter when the measurement to state space conversion, the process matrix and the control matrix are non-linear and approximations/assumptions are made to help it replicate the actual process (in this case, the small angle approximation)
 
 #### To build and run ####
      git clone https://github.com/vss2sn/bayes_filter.git  
+     sudo apt install libeigen3-dev
      cd bayes_filter  
      mkdir build  
      cd build  
@@ -27,10 +28,9 @@ Please checkout the branch `c++17` and use that/rebase on it
 
 #### TODO ####
 1. Add documentation
-2. Consider setting the initial state for the filters
-3. Option for dimension correctness checking (esp. for control input)
-4. Add options for resampling n particle filter
-5. Add calculation for the error covariance in the particle filter
+2. Option for dimension correctness checking (esp. for control input)
+3. Add options for resampling n particle filter
+4. Add calculation for the error covariance in the particle filter
 
 #### References ####
 1. https://github.com/tysik/kalman_filters/

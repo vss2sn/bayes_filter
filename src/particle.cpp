@@ -1,7 +1,5 @@
-#include <iostream>
 #include <random>
 #include <vector>
-#include <numeric>
 
 #include <Eigen/Dense>
 
@@ -42,31 +40,42 @@ Particle::Particle(
 }
 
 void Particle::Predict(const Eigen::VectorXd& u) {
+	// Predict the next state for each particle
   for(auto& p : particles) {
     p.state = processFunction(p.state, u);
   }
 }
 
 void Particle::Update(const Eigen::VectorXd& y) {
+
+	// Calculate the new weights of all the particles as probabilities that
+	// the observed state is the same as each of the particles
   for(auto& p : particles) {
     const Eigen::VectorXd diff = outputFunction(p.state) - y;
     p.weight *= (1 / (2 * 3.14 * R_.determinant())) * std::exp(-(diff.transpose() * R_ * diff)(0));
   }
-
+	// Normalize the new weights
   const auto weight = std::accumulate(particles.begin(), particles.end(), 0.0, [&](const double sum, const auto& p) { return sum + p.weight; } );
   for(auto& p : particles) {
     p.weight /= weight;
   }
+
+	// Calculate the effective number of particles (NOTE: this variant might be a naive measure)
   const auto eff_n = 1.0/std::accumulate(particles.begin(), particles.end(), 0.0, [&](const double sum, const auto& p) { return sum + std::pow(p.weight, 2); } );
 
+	// Resample if the effective number of particles is less than half the number of particles
   if(eff_n < n_particles_/2) {
     resample(n_particles_/2 - eff_n);
   }
 }
 
+// Naive resampling algorithm
 void Particle::resample(const int gen_n_samples) {
+
+	// Calculate the threshold for teh probabiolity under which particles can be replaced
   const auto threshold = std::max_element(particles.begin(), particles.end(), [&](const auto& p1, const auto& p2) { return p2.weight > p1.weight; } )->weight;
 
+	// Replace randomly selected particles that have a probability under the threshold with new particles
   std::default_random_engine generator;
   std::vector<std::uniform_real_distribution<double>> dists;
   dists.reserve(n_);
@@ -85,6 +94,7 @@ void Particle::resample(const int gen_n_samples) {
   }
 }
 
+// Find the most likely state and return it
 Eigen::VectorXd Particle::GetState() const {
   return particles[
     std::distance(particles.begin(),
@@ -93,6 +103,7 @@ Eigen::VectorXd Particle::GetState() const {
                                    [&](const auto& p1, const auto& p2) { return p2.weight > p1.weight; } ))].state;
 }
 
+// Assumes the initial state is close to accurate and creates a set of particles whose values are normally distributed around the state passed in
 void Particle::SetInitialState(const Eigen::VectorXd& x0) {
   std::default_random_engine generator;
   std::vector<std::uniform_real_distribution<double>> dists;
@@ -108,4 +119,4 @@ void Particle::SetInitialState(const Eigen::VectorXd& x0) {
       p.state[i] = dists[i](generator);
     }
   }
-};
+}
