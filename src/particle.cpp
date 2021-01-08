@@ -5,7 +5,7 @@
 
 #include <Eigen/Dense>
 
-#include "kalman_filter/particle.hpp"
+#include "bayes_filter/particle.hpp"
 
 Particle::Particle(
 		const Eigen::MatrixXd& P,
@@ -98,7 +98,7 @@ void Particle::SetInitialState(const Eigen::VectorXd& x0) {
   std::vector<std::uniform_real_distribution<double>> dists;
   dists.reserve(n_);
   for(int i = 0; i < n_; ++i) {
-    dists.emplace_back(x0[i], std::abs(x0[i]));
+    dists.emplace_back(x0[i]);
   }
 
   for(auto& p : particles) {

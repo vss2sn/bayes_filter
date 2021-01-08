@@ -14,10 +14,8 @@
 
 #include <Eigen/Dense>
 
-#include "kalman_filter/bayes_filter.hpp"
-#include "kalman_filter/extended_kalman.hpp"
-#include "kalman_filter/kalman.hpp"
-#include "kalman_filter/unscented_kalman.hpp"
+#include "bayes_filter/bayes_filter.hpp"
+#include "bayes_filter/unscented_kalman.hpp"
 
 // Log results to a csv file
 constexpr bool logging = true;

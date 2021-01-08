@@ -1,6 +1,6 @@
 #include <Eigen/Dense>
 
-#include "kalman_filter/kalman.hpp"
+#include "bayes_filter/kalman.hpp"
 
 Kalman::Kalman(
 		const Eigen::MatrixXd& A,

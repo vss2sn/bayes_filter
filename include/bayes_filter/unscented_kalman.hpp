@@ -6,7 +6,7 @@
 
 #include <Eigen/Dense>
 
-#include "kalman_filter/bayes_filter.hpp"
+#include "bayes_filter/bayes_filter.hpp"
 
 class UnscentedKalman : public BayesFilter {
 public:

@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-#include "kalman_filter/extended_kalman.hpp"
+#include "bayes_filter/extended_kalman.hpp"
 
 ExtendedKalman::ExtendedKalman(
 		const Eigen::MatrixXd& P,

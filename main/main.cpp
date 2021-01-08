@@ -6,11 +6,11 @@
 
 #include <Eigen/Dense>
 
-#include "kalman_filter/bayes_filter.hpp"
-#include "kalman_filter/extended_kalman.hpp"
-#include "kalman_filter/kalman.hpp"
-#include "kalman_filter/particle.hpp"
-#include "kalman_filter/unscented_kalman.hpp"
+#include "bayes_filter/bayes_filter.hpp"
+#include "bayes_filter/extended_kalman.hpp"
+#include "bayes_filter/kalman.hpp"
+#include "bayes_filter/particle.hpp"
+#include "bayes_filter/unscented_kalman.hpp"
 
 // Log results to a csv file
 constexpr bool logging = true;
@@ -18,7 +18,7 @@ constexpr bool logging = true;
 // Simulation constants
 constexpr double system_dt = 0.001;
 constexpr double measurement_dt = 0.01;
-constexpr double simulation_time = 2.5;
+constexpr double simulation_time = 7.5;
 
 constexpr int N = static_cast<int>(simulation_time / system_dt);
 constexpr int M = static_cast<int>(measurement_dt / system_dt);
@@ -39,10 +39,10 @@ constexpr double initial_position = 3.0;
 constexpr double initial_velocity = 0.0;
 constexpr double initial_acceleration = 0.0;
 constexpr double system_center = 0.0;
-//To use system centre another matrix would need to be passded into the
+// NOTE: To use system centre another matrix would need to be passded into the
 // kalman filter for constants
 
-// Design parameters
+// Design parameters for unscented kalman filter
 constexpr double alpha(0.05);
 constexpr double beta(2.0);
 constexpr double kappa(0.0);
@@ -99,6 +99,7 @@ int main() {
   std::normal_distribution<double> measurement_noise(measurement_mu, measurement_sigma);
   std::normal_distribution<double> process_noise(process_mu, process_sigma);
 
+  // Set up matrices for kalman filter
   A << 1, system_dt,
        mass * - g * d * system_dt, (1 - (b / mass) * system_dt);
   B << 0, mass * d *  system_dt;
@@ -106,7 +107,6 @@ int main() {
 
   P.setZero(n, n);
   Q << 0.001, 0.0, 0.0, 0.001;
-  // //std::cout   Q << '\n';
   R << 1.0, 0.0, 0.0, 1.0;
 
   // Variables to store for comparison/record
@@ -121,14 +121,16 @@ int main() {
   std::array<double, N> estimated_ang;
   std::array<double, N> believed_acc;
 
-  Eigen::VectorXd min_states((Eigen::VectorXd(2) << -3, -10).finished());
-  Eigen::VectorXd max_states((Eigen::VectorXd(2) << 3, 10).finished());
+  // Set up variables for the partile filter
+  constexpr int n_particles = 1000;
+  const Eigen::VectorXd min_states((Eigen::VectorXd(2) << -3, -10).finished());
+  const Eigen::VectorXd max_states((Eigen::VectorXd(2) << 3, 10).finished());
 
-  // Initialize UKF
+  // Initialize Filters
   Kalman kf(A, B, C, P, Q, R);
   ExtendedKalman ekf(P, Q, R, processFunction, outputFunction, processJacobian, outputJacobian);
   UnscentedKalman ukf(P, Q, R, processFunction, outputFunction, alpha, beta, kappa);
-  Particle pf(P, Q, R, processFunction, outputFunction, min_states, max_states, 1000);
+  Particle pf(P, Q, R, processFunction, outputFunction, min_states, max_states, n_particles);
 
   time[0] = 0.0;
 
@@ -136,7 +138,6 @@ int main() {
   true_vel[0] = initial_velocity;
   true_acc[0] = initial_acceleration;
 
-  // These are unknown to the filter
   measured_pos[0].setZero(2);
   measured_pos[0][0] = 0.0;
   estimated_ang[0] = 0.0;
@@ -147,11 +148,16 @@ int main() {
     file.open("position.csv");
   }
 
-  const auto initial_state = (Eigen::VectorXd(2) << 0, 0).finished();
+  // const auto initial_state = (Eigen::VectorXd(2) << 0.0, 0.0).finished();
+  const auto initial_state = (Eigen::VectorXd(2) << initial_position, initial_velocity).finished();
 
   kf.SetInitialState(initial_state);
   ekf.SetInitialState(initial_state);
   ukf.SetInitialState(initial_state);
+  pf.SetInitialState(initial_state);
+  // NOTE: allowing the particle filter to randomly generate a particles over
+  // the entire space rather than a single initial position when the
+  // initial position might be wrong is better
 
   // Simulation
   for (int i = 1; i < N; ++i) {
@@ -185,6 +191,7 @@ int main() {
     }
 
     // Predict and update
+    // Input
     const auto u = (Eigen::VectorXd(1) << believed_acc[i]).finished();
 
     kf.Predict(u);

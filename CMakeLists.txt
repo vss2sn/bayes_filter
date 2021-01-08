@@ -1,4 +1,4 @@
-# Using non-default comiler; ideally avoid setting this
+# Using non-default compiler; ideally avoid setting this
 set(CMAKE_C_COMPILER gcc-10)
 set(CMAKE_CXX_COMPILER g++-10)
 

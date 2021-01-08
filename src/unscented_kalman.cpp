@@ -4,7 +4,7 @@
 
 #include <Eigen/Dense>
 
-#include "kalman_filter/unscented_kalman.hpp"
+#include "bayes_filter/unscented_kalman.hpp"
 
 UnscentedKalman::UnscentedKalman(
 		const Eigen::MatrixXd& P,
