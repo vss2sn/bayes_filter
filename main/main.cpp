@@ -19,21 +19,21 @@ constexpr bool logging = true;
 // Simulation constants
 constexpr double system_dt = 0.001;
 constexpr double measurement_dt = 0.01;
-constexpr double simulation_time = 7.5;
+constexpr double simulation_time = 7.50;
 
 constexpr int N = static_cast<int>(simulation_time / system_dt);
 constexpr int M = static_cast<int>(measurement_dt / system_dt);
 
 // Process noise and measurement noise generators
 constexpr double measurement_mu = 0.0;
-constexpr double measurement_sigma = 0.1;
+constexpr double measurement_sigma = 0.3;
 
 constexpr double process_mu = 0.0;
-constexpr double process_sigma = 0.1;
+constexpr double process_sigma = 0.3;
 
 // System variables and dimenstions
-constexpr int n = 2;  // Number of state variables
 constexpr int m = 2;  // Number of measurement variables
+constexpr int n = 2;  // Number of state variables
 constexpr int c = 1;  // Number of control variables
 
 constexpr double initial_position = 3.0;
@@ -52,7 +52,7 @@ constexpr double kappa(0.0);
 constexpr double mass = 1.0;   // Mass in kg
 constexpr double g = 9.8;   // Gravitational accel.
 constexpr double d = 1.0;   // Length in m
-constexpr double b = 0.1;   // Friction coef. in 1/s
+constexpr double b = 0.25;   // Friction coef. in 1/s
 
 // Simulate system dynamics
 auto processFunction = [] (const Eigen::VectorXd& q, const Eigen::VectorXd& u) {

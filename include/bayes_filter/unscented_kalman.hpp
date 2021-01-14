@@ -30,15 +30,18 @@ public:
 
 private:
 
+  /* Calculate the estimated state */
+  std::function<Eigen::VectorXd(const Eigen::VectorXd& q, const Eigen::VectorXd& u)> processFunction;
+
+  /* convert the predicted state into measurement space */
+  std::function<Eigen::VectorXd(const Eigen::VectorXd& q)> outputFunction;
+
   Eigen::MatrixXd P_; /* Estimate error covariance */
   Eigen::MatrixXd Q_; /* Process noise covariance */
   Eigen::MatrixXd R_; /* Measurement noise covariance */
 
-  std::function<Eigen::VectorXd(const Eigen::VectorXd& q, const Eigen::VectorXd& u)> processFunction;
-  std::function<Eigen::VectorXd(const Eigen::VectorXd& r)> outputFunction;
-
-  int n_; /* Number of states */
   int m_; /* Number of measurements */
+  int n_; /* Number of states */
   int k_; /* Number of sigma points */
 
   Eigen::VectorXd x_est_, x_pred_; /* State estimate and predicted state */
